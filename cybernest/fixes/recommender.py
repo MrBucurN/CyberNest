@@ -650,8 +650,6 @@ class FixRecommender:
                 release,
             ))
             if not remaining and not new_advisories:
-                # Candidates are checked newest first. A zero-advisory candidate
-                # dominates older options under this exact pip-audit dataset.
                 break
 
         if not selected_results:
@@ -807,7 +805,6 @@ class FixRecommender:
                 primary["ids"].update(extra["ids"])
                 primary["findings"].extend(extra["findings"])
                 groups.remove(extra)
-            # Merging an alias group can connect a prior group transitively.
             changed = True
             while changed:
                 changed = False

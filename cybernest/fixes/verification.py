@@ -120,8 +120,6 @@ def compare_reports(previous: dict, current: dict) -> FixVerification:
     if old_findings and not remaining and not new:
         status = "resolved"
     elif not resolved and remaining and not new:
-        # Retain this v1.0 aggregate name; callers should use `remaining` for
-        # the finding-level state.
         status = "unresolved"
     elif not resolved and remaining and new:
         status = "unresolved_with_new_findings"
@@ -480,7 +478,6 @@ def _canonicalize_alias_findings(findings: list[dict]) -> list[dict]:
         primary["canonical_id"] = min(merged_ids, key=_canonical_id_priority)
         for existing in matches[1:]:
             result.remove(existing)
-        # Include identifiers that became connected after the merge.
         changed = True
         while changed:
             changed = False

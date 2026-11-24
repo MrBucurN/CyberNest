@@ -63,7 +63,6 @@ class AdvisorySeverityResolver:
         resolved = []
         statuses = []
         diagnostics = []
-        # Query both sources; apply the same explicit source policy regardless of alias order.
         ordered = sorted(normalized, key=lambda item: 0 if item.startswith("CVE-") else 1)
         for identifier in ordered:
             provider = self._provider_for_identifier(identifier)
@@ -108,7 +107,6 @@ class AdvisorySeverityResolver:
                                     identifier, self._cache_record(result), now=fetched_at
                                 )
                             except (OSError, TimeoutError, ValueError):
-                                # A cache write must never turn a valid live lookup into a scan failure.
                                 pass
                         result = replace(result, data_origin="live", cache_age_seconds=None)
                         self._cache[identifier] = (

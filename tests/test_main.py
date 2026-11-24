@@ -27,6 +27,40 @@ class FakeEngine:
 
 class TestMain(unittest.TestCase):
 
+    def test_help_shows_usage_without_printing_scan_banner(self):
+        output = io.StringIO()
+
+        with patch.object(sys, "argv", ["cybernest", "--help"]):
+            with contextlib.redirect_stdout(output), self.assertRaises(SystemExit) as exit_info:
+                main_module.main()
+
+        self.assertEqual(exit_info.exception.code, 0)
+        self.assertTrue(output.getvalue().startswith("usage:"))
+        self.assertIn("Scan Python source code and dependencies", output.getvalue())
+
+    def test_source_finding_displays_file_and_line(self):
+        finding = Finding(
+            title="Possible insecure call.",
+            severity="MEDIUM",
+            tool="bandit",
+            category="source_code",
+            file_path="src/app.py",
+            line_number=8,
+        )
+        output = self.run_main_with_results(
+            [
+                ScanResult(
+                    scanner="bandit",
+                    status=ScanStatus.SUCCESS,
+                    findings=[finding],
+                    scope={"coverage_status": "complete"},
+                )
+            ],
+            findings=[finding],
+        )
+
+        self.assertIn("Location: src/app.py:8", output)
+
     def run_main_with_results(
         self, results, findings=None, output_path=None, verbose=False, overwrite=False
     ):
@@ -188,7 +222,7 @@ class TestMain(unittest.TestCase):
 
             report = json.loads(output_path.read_text(encoding="utf-8"))
 
-        self.assertEqual(report["report_version"], "1.2")
+        self.assertEqual(report["report_version"], "1.3")
         self.assertNotIn("old", report)
         self.assertIn("Report saved", output)
 

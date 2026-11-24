@@ -135,8 +135,6 @@ def _target_tags(python_version: str | None):
     if target_pair == (sys.version_info.major, sys.version_info.minor):
         return set(sys_tags())
     if sys.platform != "win32":
-        # Cross-version wheel tags on other platforms require platform-specific
-        # compatibility expansion; leave that judgment unknown.
         return None
     platform = sysconfig.get_platform().replace("-", "_")
     if platform == "win-amd64":
@@ -154,6 +152,5 @@ def _target_tags(python_version: str | None):
         interpreter=interpreter,
         platforms=(platform,),
     ))
-    # Some wheels are tagged for any Python version and platform-independent.
     tags.update(parse_tag("py3-none-any"))
     return tags

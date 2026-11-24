@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Finding:
-    """CyberNest'in ortak güvenlik bulgusu modeli."""
+    """One security issue reported by a scanner."""
 
     title: str
     severity: str
@@ -13,8 +13,6 @@ class Finding:
     description: str = ""
     affected_component: str = ""
     installed_version: str = ""
-    # For manifest-based scans, pip-audit resolves a version; it is not an
-    # assertion that the package is installed in the user's environment.
     resolved_version: str = ""
     declared_specifier: str = ""
     dependency_source: str = ""
@@ -26,6 +24,7 @@ class Finding:
     evidence: str = ""
     recommendation: str = ""
     file_path: str = ""
+    line_number: int | None = None
     additional_descriptions: list[str] = field(default_factory=list)
     additional_fix_versions: list[str] = field(default_factory=list)
     cvss_score: float | None = None

@@ -6,6 +6,7 @@ from pathlib import Path
 from packaging.version import InvalidVersion, Version
 
 from cybernest.engine import ScanEngine
+from cybernest.integrations.bandit import BanditScanner
 from cybernest.integrations.pip_audit import PipAuditScanner
 from cybernest.fixes.recommender import FixRecommender
 from cybernest.fixes.verification import compare_reports
@@ -14,12 +15,8 @@ from cybernest.scan_result import ScanStatus
 
 
 def main():
-    print("=" * 45)
-    print("          CYBERNEST SECURITY ENGINE")
-    print("=" * 45)
-
     parser = argparse.ArgumentParser(
-        description="CyberNest Security Engine"
+        description="Scan Python source code and dependencies for security issues."
     )
     parser.add_argument("project_path")
     parser.add_argument("--output", type=Path, default=None)
@@ -73,13 +70,11 @@ def main():
 
     print(f"\nTarget: {target}")
 
-    # CyberNest motorunu oluştur
     engine = ScanEngine()
 
-    # Kullanılacak tarama araçlarını kaydet
+    engine.register(BanditScanner())
     engine.register(PipAuditScanner(python_target_override=args.python_version))
 
-    # Taramayı başlat
     try:
         findings = engine.scan(target)
     except Exception as error:
@@ -225,21 +220,26 @@ def main():
 
     severity_order = {"CRITICAL": 5, "HIGH": 4, "MEDIUM": 3, "LOW": 2, "NONE": 1, "UNKNOWN": 0}
     severity_counts = {name: 0 for name in severity_order}
-    package_counts: dict[str, int] = {}
+    affected_counts: dict[str, int] = {}
     for finding in findings:
         severity = finding.severity.upper()
         severity_counts[severity if severity in severity_counts else "UNKNOWN"] += 1
         if finding.affected_component:
-            package_counts[finding.affected_component] = package_counts.get(finding.affected_component, 0) + 1
+            affected_counts[finding.affected_component] = (
+                affected_counts.get(finding.affected_component, 0) + 1
+            )
     print("Findings by severity: " + ", ".join(
         f"{name} {severity_counts[name]}"
         for name in severity_order
         if severity_counts[name]
     ))
-    if package_counts:
-        print("Packages: " + ", ".join(
+    if affected_counts:
+        print("Affected items: " + ", ".join(
             f"{name} ({amount})"
-            for name, amount in sorted(package_counts.items(), key=lambda item: (-item[1], item[0].casefold()))[:10]
+            for name, amount in sorted(
+                affected_counts.items(),
+                key=lambda item: (-item[1], item[0].casefold()),
+            )[:10]
         ))
     ordered_findings = sorted(
         findings,
@@ -248,10 +248,19 @@ def main():
     shown_findings = ordered_findings if args.verbose else ordered_findings[:5]
     for finding in shown_findings:
         print("-" * 45)
-        print(
-            f"[{finding.severity}] {finding.affected_component} "
-            f"{finding.resolved_version or finding.installed_version}: {finding.title}"
-        )
+        if finding.category == "source_code":
+            print(f"[{finding.severity}] {finding.title}")
+        else:
+            version = finding.resolved_version or finding.installed_version
+            print(
+                f"[{finding.severity}] {finding.affected_component} "
+                f"{version}: {finding.title}"
+            )
+        if finding.file_path:
+            location = finding.file_path
+            if finding.line_number is not None:
+                location = f"{location}:{finding.line_number}"
+            print(f"Location: {location}")
         if finding.fixed_version:
             print(f"Known fixed versions: {finding.fixed_version}")
         if finding.reported_severity and finding.reported_severity != finding.severity:

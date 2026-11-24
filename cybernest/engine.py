@@ -7,7 +7,7 @@ from cybernest.scan_result import ScanResult, ScanStatus
 
 
 class ScanEngine:
-    """CyberNest'in tarama araçlarını yöneten motoru."""
+    """Runs the project's scanners."""
 
     def __init__(self):
         self.scanners: list[BaseScanner] = []
@@ -15,11 +15,11 @@ class ScanEngine:
         self.results: list[ScanResult] = []
 
     def register(self, scanner: BaseScanner):
-        """Yeni tarayıcı kaydeder."""
+        """Add a scanner to the run."""
         self.scanners.append(scanner)
 
     def scan(self, target: Path) -> list[Finding]:
-        """Tarayıcıları çalıştırır ve bulguları toplar."""
+        """Run scanners and collect their findings."""
 
         self.results = []
         findings = []

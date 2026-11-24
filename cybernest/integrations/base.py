@@ -6,11 +6,11 @@ from cybernest.finding import Finding
 
 
 class BaseScanner(ABC):
-    """Tüm CyberNest tarama araçlarının ortak arayüzü."""
+    """Common interface for scanners."""
 
     name = "unknown"
 
     @abstractmethod
     def scan(self, target: Path) -> list[Finding]:
-        """Hedef projeyi tarar ve standart bulgular döndürür."""
+        """Scan a project and return findings."""
         pass

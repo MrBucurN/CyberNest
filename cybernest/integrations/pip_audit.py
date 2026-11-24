@@ -109,7 +109,7 @@ class PipAuditScanner(BaseScanner):
         self.dependencies = []
         if not target.is_dir():
             raise NotADirectoryError(
-                f"Hedef klasör bulunamadı: {target}"
+                f"Target folder not found: {target}"
             )
         discovery = discover_project(target)
         self.discovery = discovery
@@ -138,7 +138,6 @@ class PipAuditScanner(BaseScanner):
                     coverage["transitive_coverage_status"] = "incomplete"
                     continue
                 if not manifest.direct_dependencies:
-                    # An empty dependency manifest is a complete, clean group.
                     self._successful_manifest_count += 1
                     coverage["status"] = "complete"
                     coverage["direct_coverage_status"] = "complete"
@@ -153,8 +152,6 @@ class PipAuditScanner(BaseScanner):
                     )
                 try:
                     environment = os.environ.copy()
-                    # Prevent resolver builds from executing source-distribution
-                    # build backends while scanning an untrusted dependency set.
                     environment["PIP_ONLY_BINARY"] = ":all:"
                     command = [
                         sys.executable, "-m", "pip_audit",
@@ -591,9 +588,6 @@ class PipAuditScanner(BaseScanner):
                     advisory_warnings=advisory_warnings,
                     description=description if isinstance(description, str) else "",
                     affected_component=dependency["name"],
-                    # Retain the old field for report consumers. New consumers
-                    # should use resolved_version; this scanner does not inspect
-                    # the target project's installed environment.
                     installed_version=dependency["version"],
                     resolved_version=dependency["version"],
                     declared_specifier=str(declared.get("specifier", "")) if declared else "",
@@ -617,7 +611,7 @@ class PipAuditScanner(BaseScanner):
         return findings
 
     def scan_with_status(self, target: Path) -> ScanResult:
-        """Tarama sonucunu ve çalışma durumunu döndürür."""
+        """Return the scan findings and status."""
 
         if not target.is_dir():
             return ScanResult(

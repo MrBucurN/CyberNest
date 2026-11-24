@@ -1,27 +1,12 @@
-# Python environments and bytecode
 .venv/
 venv/
 env/
 __pycache__/
 *.py[cod]
-
-# Test and type-check caches
 .pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.tox/
-.nox/
-.coverage
-.coverage.*
-coverage.xml
-htmlcov/
-
-# Build and packaging output
 build/
 dist/
 *.egg-info/
-
-# Local reports and temporary test output (repository root)
 /report*.json
 /*baseline*.json
 /*rescan*.json
@@ -29,11 +14,6 @@ dist/
 /cybernest-*.json
 /*.log
 /*.tmp
-/test-results/
-/test-output/
-/test_project/
-
-# Local secrets and credentials
 .env
 .env.*
 !.env.example
@@ -43,8 +23,6 @@ dist/
 *.pfx
 /secrets.*
 /credentials.*
-
-# Editors and operating systems
 .vscode/
 .idea/
 .DS_Store

@@ -28,8 +28,6 @@ class FakePyPI:
         if self.error:
             raise self.error
         release = self.releases.get(version)
-        # FakePyPI fixtures that omit target tags represent a matching wheel;
-        # real PyPIClient leaves None when target-platform matching is unknown.
         if release and release.target_wheel_available is None:
             return replace(release, target_wheel_available=release.wheel_available)
         return release

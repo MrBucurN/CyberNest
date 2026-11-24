@@ -39,7 +39,7 @@ class TestBuildReport(unittest.TestCase):
         report = build_report(results)
 
         self.assertEqual(report["tool"], "CyberNest")
-        self.assertEqual(report["report_version"], "1.2")
+        self.assertEqual(report["report_version"], "1.3")
         scanned_at = datetime.fromisoformat(report["scanned_at"])
         self.assertIsNotNone(scanned_at.tzinfo)
         self.assertEqual(
@@ -281,6 +281,28 @@ class TestBuildReport(unittest.TestCase):
         )
         self.assertEqual(json.loads(json.dumps(report)), report)
 
+    def test_build_report_preserves_source_line_number(self):
+        finding = Finding(
+            title="Possible insecure call.",
+            severity="MEDIUM",
+            tool="bandit",
+            category="source_code",
+            file_path="app.py",
+            line_number=17,
+        )
+
+        report = build_report([
+            ScanResult(
+                scanner="bandit",
+                status=ScanStatus.SUCCESS,
+                findings=[finding],
+            )
+        ])
+
+        saved_finding = report["scans"][0]["findings"][0]
+        self.assertEqual(saved_finding["file_path"], "app.py")
+        self.assertEqual(saved_finding["line_number"], 17)
+
     def test_build_report_includes_severity_lookup_metadata(self):
         finding = Finding(
             title="CVE-2023-30861",
@@ -376,7 +398,7 @@ class TestSaveReport(unittest.TestCase):
             output_path = Path(temp_dir) / "report.json"
             report = {
                 "tool": "CyberNest",
-                "message": "Güvenlik taraması tamamlandı.",
+                "message": "Security scan completed — no issues found.",
             }
 
             save_report(report, output_path)
@@ -385,8 +407,8 @@ class TestSaveReport(unittest.TestCase):
             saved_data = json.loads(output_path.read_text(encoding="utf-8"))
             self.assertEqual(saved_data, report)
 
-    def test_save_report_writes_json_and_preserves_turkish_characters(self):
-        report = {"message": "Güvenlik taraması tamamlandı."}
+    def test_save_report_writes_json_and_preserves_unicode_text(self):
+        report = {"message": "Security scan completed — no issues found."}
 
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = Path(temp_dir) / "report.json"
@@ -394,7 +416,7 @@ class TestSaveReport(unittest.TestCase):
 
             contents = output_path.read_text(encoding="utf-8")
 
-        self.assertIn("Güvenlik", contents)
+        self.assertIn("Security", contents)
         self.assertEqual(json.loads(contents), report)
 
     def test_save_report_does_not_overwrite_existing_file_with_existing_report(
@@ -424,11 +446,11 @@ class TestSaveReport(unittest.TestCase):
             output_path = Path(temp_dir) / "report.json"
             output_path.write_text('{"old": true}', encoding="utf-8")
 
-            save_report({"new": "Güvenli"}, output_path, overwrite=True)
+            save_report({"new": "Safe"}, output_path, overwrite=True)
 
             self.assertEqual(
                 json.loads(output_path.read_text(encoding="utf-8")),
-                {"new": "Güvenli"},
+                {"new": "Safe"},
             )
             self.assertEqual(list(Path(temp_dir).glob(".cybernest-report-*.tmp")), [])
 

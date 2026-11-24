@@ -178,8 +178,6 @@ class CompatibilityAnalyzer:
                     message = "The resolver confirmed conflicting package requirements."
                 else:
                     message = "The resolver failed without enough evidence to classify compatibility."
-                # Keep lengthy pip output in structured evidence; the warning is
-                # written for people reading a terminal report.
                 plan.warnings.append(message)
                 plan.dependency_resolution_evidence = {
                     "resolver": "pip install --dry-run",

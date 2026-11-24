@@ -41,8 +41,6 @@ class FixRecommendation:
 
     def to_dict(self) -> dict:
         data = asdict(self)
-        # Keep the original field for report compatibility while exposing the
-        # security-oriented vocabulary used by the public report schema.
         data["status"] = self.status
         return data
 

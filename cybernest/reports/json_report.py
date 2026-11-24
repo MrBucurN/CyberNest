@@ -20,6 +20,8 @@ _ADVISORY_ID = re.compile(
 
 def _serialize_finding(finding: Finding) -> dict:
     data = asdict(finding)
+    if data["line_number"] is None:
+        data.pop("line_number")
     identifiers = {
         value.upper()
         for text in [*finding.advisory_ids, finding.title]
@@ -88,7 +90,6 @@ def save_report(report: dict, output_path: Path, *, overwrite: bool = False) -> 
         if overwrite:
             os.replace(temp_path, output_path)
         else:
-            # Hard-link creation is atomic and fails if the destination exists.
             os.link(temp_path, output_path)
     finally:
         if temp_path is not None:
@@ -105,7 +106,7 @@ def build_report(
     fix_plan: dict | None = None,
     verification: dict | None = None,
 ) -> dict:
-    """ScanResult nesnelerinden JSON'a dönüştürülebilir bir rapor oluşturur."""
+    """Build a report that can be written as JSON."""
     successful = sum(
         1 for result in results if result.status == ScanStatus.SUCCESS
     )
@@ -191,9 +192,7 @@ def build_report(
 
     report = {
         "tool": "CyberNest",
-        # Keep the v1.0 top-level version for existing consumers. New fields
-        # are additive and are detected by their presence during comparison.
-        "report_version": "1.2",
+        "report_version": "1.3",
         "scanned_at": datetime.now().astimezone().isoformat(),
         "summary": {
             "total_scanners": len(results),

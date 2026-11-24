@@ -117,18 +117,14 @@ class TestEngineErrorHandling(unittest.TestCase):
     def test_engine_continues_after_scanner_failure(self):
         engine = ScanEngine()
 
-        # İlk tarayıcı hata verecek
         engine.register(FailingScanner())
 
-        # İkinci tarayıcı normal çalışacak
         engine.register(FakeScanner())
 
         findings = engine.scan(Path("."))
 
-        # Hata veren tarayıcı diğerini durdurmamalı
         self.assertEqual(len(findings), 1)
 
-        # Hata kaydedilmeli
         self.assertEqual(len(engine.errors), 1)
         self.assertEqual(
             engine.errors[0]["scanner"],
